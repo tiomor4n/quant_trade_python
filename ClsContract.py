@@ -46,13 +46,18 @@ class Contract(object):
         self.GainLoss = 0.0
         self.dicRecord = {}
         self.HoldDuration=1
+        self.pre_unGainLoss = 0.0
+        
 
 
     def OverDate(self,vDateDeal=DateDeal):
         self.vDateDeal = vDateDeal
-        self.unEvenPrice=vDateDeal.ClosePrice
+        self.unEvenPrice=vDateDeal.ClosePrice        
         self.unGainLoss=(vDateDeal.ClosePrice-self.BuildPrice) * self.Position * self.TradeWay
+        self.pre_unGainLoss = max(self.pre_unGainLoss,self.unGainLoss)
         self.HoldDuration += 1
+
+    
 
     def CloseContract(self,vDateDeal=DateDeal,ClosePrice=0.0,CloseApp = 'Close'):
         self.EndDate = vDateDeal.TradeDate
@@ -63,6 +68,13 @@ class Contract(object):
         elif CloseApp == 'Assign':
             self.EvenPrice = ClosePrice
         self.GainLoss = (self.EvenPrice-self.BuildPrice) * self.Position * self.TradeWay
+        
+    def Net_Trailling(self,N = 10000,ratio=0.5):
+        return self.pre_unGainLoss > N and self.unGainLoss < self.pre_unGainLoss * ratio
+        
+    def StopLoss_FixPrice(self,N):
+        return (self.unEvenPrice - self.BuildPrice ) * self.TradeWay > N
+        
         
 
         

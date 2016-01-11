@@ -70,7 +70,41 @@ for deal in dealArr:
             Acct1.totalAmt = Acct1.totalAmt - floatrou(((cont.EvenPrice * cont.Position * 0.003) + (cont.EvenPrice * cont.Position * 0.001425 * 0.6)))
             CloseConArr.append({'InitDate':cont.InitDate,'EndDate':cont.EndDate,'DealAmt':cont.Position,'OpenPrice':cont.BuildPrice,'ClosePrice':cont.EvenPrice})
             #print cont.ContName + ' GainLoss:' + str(cont.GainLoss)
-  
+        '''         
+        #前N個K線最低值停損機制，參數:N
+        if IndCal.preLowStop(vDeal = deal,vintWindow = 5,vTrend = 'UP'):
+            cont.CloseContract(deal)            
+            Acct1.AcctCloseCon()
+            Acct1.totalAmt = Acct1.totalAmt - floatrou(((cont.EvenPrice * cont.Position * 0.003) + (cont.EvenPrice * cont.Position * 0.001425 * 0.6)))
+            CloseConArr.append({'InitDate':cont.InitDate,'EndDate':cont.EndDate,'DealAmt':cont.Position,'OpenPrice':cont.BuildPrice,'ClosePrice':cont.EvenPrice,'Stop Loss':'Yes'})
+            print 'Init Date: ' + date2str(cont.InitDate) + ' stop price:' + str(cont.EvenPrice) +\
+            ' stop loss at ' + date2str(deal.TradeDate) 
+        '''
+        
+        '''
+        #獲利超過N後回徹ratio停損，參數:N金額，ratio百分比(0.5)
+        if cont.Net_Trailling(N = 5000,ratio = 0.5):
+            cont.CloseContract(vDateDeal = deal,ClosePrice = cont.pre_unGainLoss * 0.5,CloseApp = 'Assign')            
+            Acct1.AcctCloseCon()
+            Acct1.totalAmt = Acct1.totalAmt - floatrou(((cont.EvenPrice * cont.Position * 0.003) + (cont.EvenPrice * cont.Position * 0.001425 * 0.6)))
+            CloseConArr.append({'InitDate':cont.InitDate,'EndDate':cont.EndDate,'DealAmt':cont.Position,'OpenPrice':cont.BuildPrice,'ClosePrice':cont.EvenPrice,'Stop Loss':'Yes'})
+            print 'Init Date: ' + date2str(cont.InitDate) + ' stop price:' + str(cont.EvenPrice) +\
+            ' stop loss at ' + date2str(deal.TradeDate) 
+        '''
+        '''
+        #價格損失超過N點(元)時停損
+        
+        SLoss = 4
+        if cont.StopLoss_FixPrice(N = SLoss):
+            cont.CloseContract(vDateDeal = deal,ClosePrice = cont.BuildPrice-SLoss,CloseApp = 'Assign')            
+            Acct1.AcctCloseCon()
+            Acct1.totalAmt = Acct1.totalAmt - floatrou(((cont.EvenPrice * cont.Position * 0.003) + (cont.EvenPrice * cont.Position * 0.001425 * 0.6)))
+            CloseConArr.append({'InitDate':cont.InitDate,'EndDate':cont.EndDate,'DealAmt':cont.Position,'OpenPrice':cont.BuildPrice,'ClosePrice':cont.EvenPrice,'Stop Loss':'Yes'})
+            print 'Init Date: ' + date2str(cont.InitDate) + ' stop price:' + str(cont.EvenPrice) +\
+            ' stop loss at ' + date2str(deal.TradeDate) 
+            
+        '''
+        
     '''
     找該date之ATR，然後計算該日如果交易的最適交易量
     ''' 
@@ -115,5 +149,6 @@ printtxt.append('CalDDAmt:' + txtpercent(rCalDDAmt))
 BackwardTest("test.png",printtxt)         
 
 for ar in CloseConArr:
-   print 'InitDate:'  + date2str(ar['InitDate']) + ', EndDate:' + date2str(ar['EndDate']) + ',DealAmt:' + str(ar['DealAmt']) + ',OpenPrice:' + str(ar['OpenPrice']) + ',ClosePrice:' + str(ar['ClosePrice'])
+   print 'InitDate:'  + date2str(ar['InitDate']) + ', EndDate:' + date2str(ar['EndDate']) + ',DealAmt:' + str(ar['DealAmt']) + ',OpenPrice:'\
+   + str(ar['OpenPrice']) + ',ClosePrice:' + str(ar['ClosePrice'])
    

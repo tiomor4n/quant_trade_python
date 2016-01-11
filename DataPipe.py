@@ -16,6 +16,8 @@ import os
 import urllib2
 from bs4 import BeautifulSoup as bs
 import json
+import numpy as np
+import matplotlib.dates as mdates
 
 
 def TWNFutureLocal(vYear,vItem):
@@ -125,5 +127,34 @@ def TWNStockTIOMO(vTarget = '2330',vbegin='201501',vend='201512'):
                              ClosePrice = floatrou(a['ClosePrice']),
                              DealAmt = floatrou(a['DealStockAmt'])
             )
+        dealArr.append(dDeal)
+    return dealArr
+    
+def YahooFinance(vTarget='2330.TW',vRange = '1y'):
+    urlToVisit = 'http://chartapi.finance.yahoo.com/instrument/1.0/'+vTarget+'/chartdata;type=quote;range=' + vRange + '/csv'
+    stockFile =[]
+    try:
+        sourceCode = urllib2.urlopen(urlToVisit).read()
+        splitSource = sourceCode.split('\n')
+        for eachLine in splitSource:
+            splitLine = eachLine.split(',')
+            if len(splitLine)==6:
+                if 'values' not in eachLine:
+                    stockFile.append(eachLine)
+    except Exception, e:
+        print str(e), 'failed to organize pulled data.'
+    #date, closep, highp, lowp, openp, volume = np.loadtxt(stockFile,delimiter=',', unpack=True,
+    #                                                          converters={ 0: mdates.strpdate2num('%Y%m%d')})
+    date, closep, highp, lowp, openp, volume = np.loadtxt(stockFile,delimiter=',', unpack=True)
+    y = len(date)
+    dealArr = []
+    for i in range(y):
+        dDeal = DateDeal(TradeDate = str2date(str(int(date[i])),'%Y%m%d'),
+                         OpenPrice = floatrou(openp[i]),
+                         HighPrice = floatrou(highp[i]),
+                         LowPrice = floatrou(lowp[i]),
+                         ClosePrice = floatrou(closep[i]),
+                         DealAmt = floatrou(volume[i])
+                        )
         dealArr.append(dDeal)
     return dealArr

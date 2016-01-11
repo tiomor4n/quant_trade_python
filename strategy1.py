@@ -190,24 +190,79 @@ class IndexCal(object):
         else:
             return close5 * 1.1 < close4 and np.mean(nextclose) * 1.3 < (np.mean(preclose))
             
+    def Oscillator(self,vDeal=DateDeal):
+        ind = self.dateArr.index(vDeal.TradeDate)
+        
+            
     def CalADX(self,vDeal = DateDeal):
         ind = self.dateArr.index(vDeal.TradeDate)
         window = self.dealarr[ind-1:ind]
-        
+        TRArr = []    
+        preprice = 0.0
+        for deal in self.dealarr:
+            if self.dealarr.index(deal) == 0:
+                TRArr.append(deal.HighPrice - deal.LowPrice)
+                #print len(TRArr)
+            else:
+                TRArr.append(max(deal.HighPrice-deal.LowPrice,math.fabs(deal.HighPrice - preprice),math.fabs(preprice - deal.LowPrice)))
+                
+            preprice = deal.ClosePrice
             
         
-    def preLowStop(self,vDeal = DateDeal,vTrend = 'UP'):
-        def preHighLow(self,vDateDeal):
-            ind = self.dateArr.index(vDeal.TradeDate)
-            PreHigh = self.dealarr[ind-1].HighPrice
-            PreLow = self.dealarr[ind-1].LowPrice
-            return PreHigh,PreLow
         
-        rPreHigh,rPreLow =   preHighLow(vDeal)      
+    def preHighLow(self,vDateDeal,vintWindow):
+        ind = self.dateArr.index(vDateDeal.TradeDate)
+        window = self.dealarr[ind-vintWindow:ind]
+        higharr = []
+        lowarr = []
+        for ar in window:
+            higharr.append(ar.HighPrice)
+            lowarr.append(ar.LowPrice)
+        PreHigh = max(higharr)
+        PreLow = min(lowarr)
+        return PreHigh,PreLow         
+        
+    def preLowStop(self,vDeal = DateDeal,vintWindow = 3,vTrend = 'UP'):
+        rPreHigh,rPreLow =  self.preHighLow(vDateDeal = vDeal,vintWindow = vintWindow)      
         if vTrend == 'UP':
             return vDeal.ClosePrice < rPreLow
         else:
             return vDeal.ClosePrice > rPreHigh
+ 
+    '''
+    已進場當根K bar與前一根Kbar最低點比較，誰的低點低誰當第一個停損
+    接下來只要K br創新高，就已創新高的K bar的低點當停損點
+    介面:
+    input:datedeal,是否為第一個，運算前停損價，運算前最高價,vTrend
+    output:運算後停損價，運算後最高價，是否停損
+    
+    '''
+    def preKbadStop(self,vDeal = DateDeal,vTrend = 'UP'):
+        def preKbadArrCal(self,vDeal = DateDeal,vTrend):
+            preKbadArr = []
+            ind = self.dateArr.index(vDeal.TradeDate)
+            if vTrend == 'UP':
+                badp = min(self.dealarr[ind].LowPrice,self.dealarr[ind-1].LowPrice)
+                preKbadArr.append(badp)
+                bestp = vDeal.HighPrice
+                for deal in self.dealarr[ind+1:]:
+                    bestp = max(deal.HighPrice,bestp)
+                    if deal.HighPrice == bestp:
+                        badp = min(badp,deal.LowPrice)
+                    preKbadArr.append(badp)
+            else:
+                badp = max(self.dealarr[ind].HighPrice,self.dealarr[ind-1].HighPrice)
+                preKbadArr.append(badp)
+                bestp = vDeal.LowPrice
+                for deal in self.dealarr[ind+1:]:
+                    bestp = max(deal.LowPrice,bestp)
+                    if deal.LowPrice == bestp:
+                        badp = min(badp,deal.HighPrice)
+                    preKbadArr.append(badp)
+            return preKbadArr
+                
+                        
+        
     
     def ERatioCal(self,vRange=50):
         ERatioArr = []
@@ -226,18 +281,4 @@ class IndexCal(object):
             MAE = orig - min(self.ClosePriceArr[self.dealarr.index(deal):self.dealarr.index(deal)+vRange])
             MFEArr.append(MFE)
             MAEArr.append(MAE)
-        
-        
-        
-        
-        
-
-    
-
-
-                 
-        
-        
-            
-        
-        
+       
