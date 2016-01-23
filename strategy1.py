@@ -59,12 +59,14 @@ class IndexCal(object):
         self.HighPriceArr = []
         self.LowPriceArr = []
         self.ClosePriceArr = []
+        self.DealAmtArr = []
         for deal in self.dealarr:
             self.dateArr.append(deal.TradeDate)
             self.OpenPriceArr.append(deal.OpenPrice)
             self.HighPriceArr.append(deal.HighPrice)
             self.LowPriceArr.append(deal.LowPrice)
             self.ClosePriceArr.append(deal.ClosePrice)
+            self.DealAmtArr.append(deal.DealAmt)
             
     
 
@@ -237,35 +239,35 @@ class IndexCal(object):
     output:運算後停損價，運算後最高價，是否停損
     
     '''
-    def preKbadStop(self,vDdeal = DateDeal,visFirst = False,vprebadp=0,vpregoodp=0,vTrend = 'UP'):
-        ind = self.dateArr.index(vDdeal.TradeDate)
+    def preKbadStop(self,vDeal = DateDeal,visFirst = False,vprebadp=0,vpregoodp=0,vTrend = 'UP'):
+        ind = self.dateArr.index(vDeal.TradeDate)
         if vTrend == 'UP':
             if visFirst == True:
-                goodp = vDdeal.HighPrice                
+                goodp = vDeal.HighPrice                
                 badp = min(self.dealarr[ind].LowPrice,self.dealarr[ind-1].LowPrice)
                 StopL = False
                 return badp,goodp,StopL
             else:
-                goodp = max(vDdeal.HighPrice,vpregoodp)
-                if goodp == vDdeal.HighPrice:
-                    badp = vDdeal.LowPrice
+                goodp = max(vDeal.HighPrice,vpregoodp)
+                if goodp == vDeal.HighPrice:
+                    badp = vDeal.LowPrice
                 else:
                     badp = vprebadp
-                StopL = vDdeal.ClosePrice < vprebadp                
+                StopL = vDeal.ClosePrice < vprebadp                
                 return badp,goodp,StopL
         else:
             if visFirst == True:
-                goodp = vDdeal.LowPrice                
+                goodp = vDeal.LowPrice                
                 badp = min(self.dealarr[ind].HighPrice,self.dealarr[ind-1].HighPrice)
                 StopL = False
                 return badp,goodp,StopL
             else:
-                goodp = min(vDdeal.LowPrice,vpregoodp)
-                if goodp == vDdeal.LowPrice:
-                    badp = vDdeal.HighPrice
+                goodp = min(vDeal.LowPrice,vpregoodp)
+                if goodp == vDeal.LowPrice:
+                    badp = vDeal.HighPrice
                 else:
                     badp = vprebadp
-                StopL = vDdeal.ClosePrice > vprebadp                
+                StopL = vDeal.ClosePrice > vprebadp                
                 return badp,goodp,StopL
          
     '''
@@ -312,11 +314,11 @@ class IndexCal(object):
     def DICal(self,vDeal = DateDeal,vwindow = 14,visFirst = False,vpreDM = 0):
         ind = self.dateArr.index(vDeal.TradeDate)
         if len(self.dealarr[0:ind])< vwindow:
-            print "transaction date should longer then window"
-            sys.exit()
+            #print "transaction date should longer then window"
+            #sys.exit()
+            return 0,0
         #windowArr = self.dealarr[ind-vwindow+1:ind+1]   #這樣會抓最後一個為vDeal的vwindow個元素陣列  要多抓一個才能算TR DM
         windowArr = self.dealarr[ind-vwindow:ind+1]   #這樣會抓最後一個為vDeal的vwindow個元素陣列  要多抓一個才能算TR DM
-        print len(windowArr)
         DMplus = 0
         DMminus = 0
         rTR = 0
@@ -333,6 +335,13 @@ class IndexCal(object):
         DIminus = (DMminus/rTR) * 100
         
         return DIplus,DIminus
+    
+    def RsiCal(self,vDeal = DateDeal,vwindow = 14)    :
+        ind = self.dateArr.index(vDeal.TradeDate)
+        if len(self.dealarr[0:ind])<vwindow:
+            return 0
+        
+        windowArr = self.dealarr[ind-vwindow:ind+1] 
         
          
 

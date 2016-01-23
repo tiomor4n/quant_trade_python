@@ -16,7 +16,7 @@ from ClsContract import DateDeal
 from strategy1 import durationMax
 from strategy1 import IndexCal
 from DataPipe import TWNStockTIOMO
-from figure_plot_output import Acct_mkt_compare
+from figure_plot_output import Acct_mkt_compare,Acct_mkt_candle
 from ClsGenReport import CalCAGR,CalSharpInd,CalDD,BackwardTest
 
 PostAmt = 1000
@@ -70,41 +70,12 @@ for deal in dealArr:
             Acct1.totalAmt = Acct1.totalAmt - floatrou(((cont.EvenPrice * cont.Position * 0.003) + (cont.EvenPrice * cont.Position * 0.001425 * 0.6)))
             CloseConArr.append({'InitDate':cont.InitDate,'EndDate':cont.EndDate,'DealAmt':cont.Position,'OpenPrice':cont.BuildPrice,'ClosePrice':cont.EvenPrice})
             #print cont.ContName + ' GainLoss:' + str(cont.GainLoss)
-        '''         
-        #前N個K線最低值停損機制，參數:N
-        if IndCal.preLowStop(vDeal = deal,vintWindow = 5,vTrend = 'UP'):
-            cont.CloseContract(deal)            
-            Acct1.AcctCloseCon()
-            Acct1.totalAmt = Acct1.totalAmt - floatrou(((cont.EvenPrice * cont.Position * 0.003) + (cont.EvenPrice * cont.Position * 0.001425 * 0.6)))
-            CloseConArr.append({'InitDate':cont.InitDate,'EndDate':cont.EndDate,'DealAmt':cont.Position,'OpenPrice':cont.BuildPrice,'ClosePrice':cont.EvenPrice,'Stop Loss':'Yes'})
-            print 'Init Date: ' + date2str(cont.InitDate) + ' stop price:' + str(cont.EvenPrice) +\
-            ' stop loss at ' + date2str(deal.TradeDate) 
-        '''
         
-        '''
-        #獲利超過N後回徹ratio停損，參數:N金額，ratio百分比(0.5)
-        if cont.Net_Trailling(N = 5000,ratio = 0.5):
-            cont.CloseContract(vDateDeal = deal,ClosePrice = cont.pre_unGainLoss * 0.5,CloseApp = 'Assign')            
-            Acct1.AcctCloseCon()
-            Acct1.totalAmt = Acct1.totalAmt - floatrou(((cont.EvenPrice * cont.Position * 0.003) + (cont.EvenPrice * cont.Position * 0.001425 * 0.6)))
-            CloseConArr.append({'InitDate':cont.InitDate,'EndDate':cont.EndDate,'DealAmt':cont.Position,'OpenPrice':cont.BuildPrice,'ClosePrice':cont.EvenPrice,'Stop Loss':'Yes'})
-            print 'Init Date: ' + date2str(cont.InitDate) + ' stop price:' + str(cont.EvenPrice) +\
-            ' stop loss at ' + date2str(deal.TradeDate) 
-        '''
-        '''
-        #價格損失超過N點(元)時停損
-        
-        SLoss = 4
-        if cont.StopLoss_FixPrice(N = SLoss):
-            cont.CloseContract(vDateDeal = deal,ClosePrice = cont.BuildPrice-SLoss,CloseApp = 'Assign')            
-            Acct1.AcctCloseCon()
-            Acct1.totalAmt = Acct1.totalAmt - floatrou(((cont.EvenPrice * cont.Position * 0.003) + (cont.EvenPrice * cont.Position * 0.001425 * 0.6)))
-            CloseConArr.append({'InitDate':cont.InitDate,'EndDate':cont.EndDate,'DealAmt':cont.Position,'OpenPrice':cont.BuildPrice,'ClosePrice':cont.EvenPrice,'Stop Loss':'Yes'})
-            print 'Init Date: ' + date2str(cont.InitDate) + ' stop price:' + str(cont.EvenPrice) +\
-            ' stop loss at ' + date2str(deal.TradeDate) 
             
-        '''
-        
+    RecDateArr.append(deal.TradeDate)
+    RecAmtArr.append(Acct1.totalAmt)
+    ClosePriceArr.append(deal.ClosePrice)
+    
     '''
     找該date之ATR，然後計算該日如果交易的最適交易量
     ''' 
@@ -114,12 +85,6 @@ for deal in dealArr:
         PostAmt = math.floor((Acct1.totalAmt * 0.01)/(ATR*1000))
     else:
         continue
-    
-    
-    
-    RecDateArr.append(deal.TradeDate)
-    RecAmtArr.append(Acct1.totalAmt)
-    ClosePriceArr.append(deal.ClosePrice)
     
     '''
     加上MA位置filter
@@ -136,8 +101,15 @@ for deal in dealArr:
             '''
             Acct1.totalAmt = Acct1.totalAmt - floatrou(cont1.BuildPrice * cont1.Position * 0.001425 * 0.06)
             RecContArr.append(cont1)
+
+#print len(dealArr)
+#print len(RecAmtArr)
+#print IndCal.dealarr[0].TradeDate
+#print dealArr[0].TradeDate
+#print RecDateArr[0]
             
-Acct_mkt_compare(RecDateArr,RecAmtArr,ClosePriceArr)   
+#Acct_mkt_compare(RecDateArr,RecAmtArr,ClosePriceArr)   
+Acct_mkt_candle(dealArr,RecAmtArr)
 
 rCalDDAmt,rCalDD = CalDD(RecAmtArr)
 printtxt = []
