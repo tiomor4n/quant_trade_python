@@ -18,7 +18,7 @@ from bs4 import BeautifulSoup as bs
 import json
 import numpy as np
 import matplotlib.dates as mdates
-
+from googlefinance import getQuotes
 
 def TWNFutureLocal(vYear,vItem):
     
@@ -158,3 +158,22 @@ def YahooFinance(vTarget='2330.TW',vRange = '1y'):
                         )
         dealArr.append(dDeal)
     return dealArr
+    
+def GoogleFinance(vTarget = '2330'):
+    jsontxt = json.dumps(getQuotes(vTarget), indent=2)
+    #print jsontxt
+    config = json.loads(jsontxt)
+    #print config[0]['LastTradeDateTime'].replace('u\'','').replace('\'','') + ',' + \
+    #config[0]['LastTradePrice'].replace('u\'','').replace('\'','')
+    return config[0]['LastTradeDateTime'].replace('u\'','').replace('\'','') + ',' + \
+    config[0]['LastTradePrice'].replace('u\'','').replace('\'','')
+    
+def Get0050():
+    _0050Arr = []
+    with open(r'D:\Program\python\testzone\0050.csv') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            _0050Arr.append(row['Code'])
+    return _0050Arr
+    
+    
