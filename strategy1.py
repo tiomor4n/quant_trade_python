@@ -310,7 +310,7 @@ class IndexCal(object):
             preDeal = self.dealarr[ind-1]
             rTR = max(vDeal.HighPrice - vDeal.LowPrice,vDeal.HighPrice - preDeal.ClosePrice,preDeal.ClosePrice - vDeal.LowPrice)
         return rTR
-    
+        
     def DICal(self,vDeal = DateDeal,vwindow = 14,visFirst = False,vpreDM = 0):
         ind = self.dateArr.index(vDeal.TradeDate)
         if len(self.dealarr[0:ind])< vwindow:
@@ -336,12 +336,60 @@ class IndexCal(object):
         
         return DIplus,DIminus
     
-    def RsiCal(self,vDeal = DateDeal,vwindow = 14)    :
+    def RsiCal(self,vwindow):
+        prices = self.ClosePriceArr
+        deltas = np.diff(prices)
+        seed = deltas[:vwindow+1]
+        up = seed[seed>=0].sum()/vwindow
+        down = -seed[seed<0].sum()/vwindow
+        rs = up/down
+        rsi = np.zeros_like(prices)
+        rsi[:vwindow] = 100. - 100./(1.+rs)
+    
+        for i in range(vwindow, len(prices)):
+            delta = deltas[i-1] # cause the diff is 1 shorter
+    
+            if delta>0:
+                upval = delta
+                downval = 0.
+            else:
+                upval = 0.
+                downval = -delta
+    
+            up = (up*(vwindow-1) + upval)/vwindow
+            down = (down*(vwindow-1) + downval)/vwindow
+    
+            rs = up/down
+            rsi[i] = 100. - 100./(1.+rs)
+    
+        return rsi
+        '''
         ind = self.dateArr.index(vDeal.TradeDate)
         if len(self.dealarr[0:ind])<vwindow:
             return 0
         
-        windowArr = self.dealarr[ind-vwindow:ind+1] 
+        windowArr = self.ClosePriceArr[ind-vwindow:ind+1] 
+        diffw = np.diff(windowArr)
+        up = diffw[diffw>0].sum()/vwindow
+        down = -diffw[diffw<0].sum()/vwindow
+        rs = up/down
+        rsi = 100. - 100./(1.+rs)
+        return rsi
+        '''
+        
+    def RsiStop(self,vTrend,Criteria,vwindow,vRsiArr=[],vDeal = DateDeal):
+        #RsiArr = self.RsiCal(vwindow = vwindow)
+        RsiArr = vRsiArr
+        ind = self.dateArr.index(vDeal.TradeDate)
+        if ind < vwindow + 1:
+            print 'error tradedate'
+            sys.exit()
+        preRsi = RsiArr[ind-1]
+        nowRsi = RsiArr[ind]
+        if vTrend == 'UP':
+            return nowRsi < Criteria <= preRsi 
+        else:    
+            return preRsi <= Criteria < nowRsi
         
          
 

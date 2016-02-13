@@ -9,7 +9,7 @@ Created on Sat Dec 19 09:57:21 2015
 from matplotlib import pyplot as plt
 from matplotlib.dates import DateFormatter, WeekdayLocator,DayLocator, MONDAY,MonthLocator
 from matplotlib.figure import Figure
-
+from matplotlib import image as mpimg
 from strategy1 import IndexCal
 from matplotlib import pyplot as plt
 import matplotlib.dates as mdates
@@ -18,6 +18,8 @@ import numpy as np
 import matplotlib.ticker as mticker
 from DataPipe import YahooFinance,TWNStockTIOMO,TWNFutureLocal
 from ClsContract import DateDeal
+from matplotlib.font_manager import FontProperties
+
 
 def Acct_mkt_compare(x1,y1,y2):
     dtloc = mdates.DayLocator()
@@ -45,7 +47,7 @@ def Acct_mkt_compare(x1,y1,y2):
     plt.savefig(u"test.png", dpi=100, format="png")    
     plt.show()
     
-def Acct_mkt_candle(dealArr = [],AcctAmtArr=[]):
+def Acct_mkt_candle(dealArr = [],AcctAmtArr=[],BuildPriceArr=[]):
     from matplotlib.finance import candlestick_ohlc
     datenumArr = []
     openp = []
@@ -53,6 +55,7 @@ def Acct_mkt_candle(dealArr = [],AcctAmtArr=[]):
     lowp=[]
     closep=[]
     volume=[]
+    font = FontProperties(fname=r"c:\windows\fonts\mingliu.ttc", size=12)
     
     for a in dealArr:
         datenumArr.append(mdates.date2num(a.TradeDate))
@@ -75,6 +78,8 @@ def Acct_mkt_candle(dealArr = [],AcctAmtArr=[]):
     ax1 = plt.subplot2grid((3,2), (1,0), rowspan=4, colspan=4, axisbg='#07000d')
     fig.set_size_inches(18.5, 10.5)
     candlestick_ohlc(ax1,newAr[:],width=.6,colorup='#ff1717',colordown='#53c156')
+    plt.scatter(datenumArr,BuildPriceArr,s=50,marker='^',color = 'white')
+    plt.xticks()
     par1 = ax1.twinx()    
     par1.plot(datenumArr[:],AcctAmtArr[:],color = "red",linewidth=1)    
     ax1.grid(True, color='w')
@@ -90,7 +95,13 @@ def Acct_mkt_candle(dealArr = [],AcctAmtArr=[]):
     par1.tick_params(axis='y', colors='w')
     plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='upper'))
     ax1.tick_params(axis='x', colors='w')
-    #plt.ylabel('Stock price and Volume')
-    plt.savefig(u"test.png", format="png")
-    plt.show()
+    plt.ylabel('Stock price and Volume')
+    extent = ax1.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+    plt.title(u"Test", fontproperties=font)
+    plt.xlabel("Time")
+    plt.ylabel("Hits/hour")
+    plt.sca(par1)
+    plt.savefig(u"test.png", format="png",bbox_inches=extent.expanded(1.1, 1.2))
+    #plt.savefig(u"test.png", format="png",bbox_inches=extent)
+    #plt.show()
     
